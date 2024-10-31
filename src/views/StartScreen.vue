@@ -29,7 +29,7 @@ export default {
       this.$router.push('/login')
     },
     signup() {
-      this.$router.push('/settings')
+      this.$router.push('/signup')
     }
   }
 }
