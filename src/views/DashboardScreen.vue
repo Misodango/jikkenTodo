@@ -6,7 +6,6 @@
           <v-card-title class="text-h5 d-flex align-center">
             <v-icon start class="me-2" v-model="displayName">mdi-account</v-icon>
             アプリ名へようこそ！ {{ displayName }}でログインしています．
-            {{ console.log(displayName) }}
           </v-card-title>
         </v-card>
       </v-col>
@@ -55,7 +54,7 @@
           </v-card-title>
 
           <v-card-text>
-            <v-btn block color="primary" class="mb-4" prepend-icon="mdi-plus" @click="openNewExperimentDialog">
+            <v-btn block color="primary" class="mb-4" prepend-icon="mdi-plus" @click="register">
               次の実験を登録
             </v-btn>
 
@@ -290,5 +289,10 @@ export default {
       openImportDialog,
     }
   },
+  methods: {
+    register() {
+      this.$router.push('/register')
+    }
+  }
 }
 </script>
