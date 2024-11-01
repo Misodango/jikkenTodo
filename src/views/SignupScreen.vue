@@ -1,16 +1,18 @@
-<!-- Signup.vue -->
 <template>
   <v-container class="fill-height">
     <v-row justify="center" align="center">
       <v-col cols="12" sm="8" md="6" lg="4">
         <v-card class="elevation-12 pa-4">
           <v-card-title class="text-center text-h4 font-weight-bold">
-            Sign Up
+            サインアップ
           </v-card-title>
           <v-card-text>
             <v-form @submit.prevent="handleSignup" v-model="valid">
               <v-text-field v-model="email" label="Email" type="email" :rules="emailRules" required
                 prepend-icon="mdi-email" variant="outlined" class="mb-2"></v-text-field>
+
+              <v-text-field v-model="displayName" label="表示名" prepend-icon="mdi-rename" variant="outlined"
+                :rules="displayNameRules" required class="mb-2"></v-text-field>
 
               <v-text-field v-model="password" label="Password" :type="showPassword ? 'text' : 'password'"
                 :rules="passwordRules" required prepend-icon="mdi-lock"
@@ -24,7 +26,7 @@
                 class="mb-4"></v-text-field>
 
               <v-btn type="submit" color="primary" block :loading="loading" :disabled="!valid || loading" size="large">
-                Sign Up
+                登録
               </v-btn>
             </v-form>
           </v-card-text>
@@ -34,9 +36,9 @@
           </v-alert>
 
           <v-card-text class="text-center mt-4">
-            Already have an account?
+            すでにアカウントをお持ちですか？
             <v-btn variant="text" color="primary" to="/login">
-              Login here
+              ログインはこちら
             </v-btn>
           </v-card-text>
         </v-card>
@@ -47,7 +49,7 @@
 
 <script>
 import { auth } from "../firebase/init";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 
 export default {
   data() {
@@ -57,20 +59,25 @@ export default {
       email: "",
       password: "",
       confirmPassword: "",
+      displayName: "",
       message: "",
       showPassword: false,
       showConfirmPassword: false,
       emailRules: [
-        v => !!v || 'Email is required',
-        v => /.+@.+\..+/.test(v) || 'Email must be valid'
+        v => !!v || 'メールアドレスを入力してください.',
+        v => /.+@.+\..+/.test(v) || '有効なメールアドレスを入力してください.'
       ],
       passwordRules: [
-        v => !!v || 'Password is required',
-        v => v.length >= 6 || 'Password must be at least 6 characters'
+        v => !!v || 'パスワードを入力してください.',
+        v => v.length >= 6 || 'パスワードは最低6文字です.'
       ],
       confirmPasswordRules: [
-        v => !!v || 'Please confirm your password',
-        v => v === this.password || 'Passwords must match'
+        v => !!v || 'パスワードを確認してください.',
+        v => v === this.password || 'パスワードが一致しません.'
+      ],
+      displayNameRules: [
+        v => !!v || '表示名を入力してください.',
+        v => v.length <= 15 || '表示名は15文字以下にしてください'
       ]
     };
   },
@@ -82,8 +89,13 @@ export default {
       this.message = "";
 
       try {
-        await createUserWithEmailAndPassword(auth, this.email, this.password);
-        this.message = "Signup successful!";
+        const userCredential = await createUserWithEmailAndPassword(auth, this.email, this.password)
+        try {
+          await updateProfile(userCredential.user, { displayName: this.displayName })
+        } catch (error) {
+          this.message("ユーザー名を登録できませんでした.")
+        }
+        this.message = "登録が完了しました!";
         this.$router.push("/login");
       } catch (error) {
         this.message = error.message;
