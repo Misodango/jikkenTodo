@@ -28,9 +28,9 @@
           </v-alert>
 
           <v-card-text class="text-center mt-4">
-            Don't have an account?
+            アカウントを持っていませんか?
             <v-btn variant="text" color="primary" to="/signup">
-              Sign up here
+              サインアップはこちら
             </v-btn>
           </v-card-text>
         </v-card>

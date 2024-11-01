@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import StartScreen from '@/views/StartScreen.vue'
 import LoginScreen from '@/views/LoginScreen'
 import SignupScreen from '@/views/SignupScreen'
+import DashboardScreen from '@/views/DashboardScreen'
 
 const routes = [
 	{
@@ -18,7 +19,12 @@ const routes = [
 		path: '/signup',
 		name: 'Signup',
 		component: SignupScreen
-	}
+	},
+		{
+			path: '/dashboard',
+			name: 'Dashboard',
+			component: DashboardScreen
+		}
 	// 他のルートをここに追加していきます
 ]
 
