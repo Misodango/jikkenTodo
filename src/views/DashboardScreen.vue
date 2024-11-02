@@ -1,172 +1,175 @@
 <template>
   <v-container fluid>
+    <!-- ヘッダー -->
     <v-row class="mb-6">
       <v-col cols="12">
-        <v-card class="mb-4">
+        <v-card>
           <v-card-title class="text-h5 d-flex align-center">
-            <v-icon start class="me-2" v-model="displayName">mdi-account</v-icon>
-            アプリ名へようこそ！ {{ displayName }}でログインしています．
+            <v-icon start class="me-2">mdi-view-dashboard</v-icon>
+            実験一覧
           </v-card-title>
         </v-card>
       </v-col>
     </v-row>
 
-    <!-- Upcoming な実験について表示する -->
+    <!-- フィルターとソート -->
+    <v-row class="mb-4">
+      <v-col cols="12" sm="4">
+        <v-select v-model="filter" :items="filterOptions" label="ステータス" prepend-inner-icon="mdi-filter"
+          clearable></v-select>
+      </v-col>
+      <v-col cols="12" sm="4">
+        <v-select v-model="sortBy" :items="sortOptions" label="並び替え" prepend-inner-icon="mdi-sort"></v-select>
+      </v-col>
+      <v-col cols="12" sm="4">
+        <v-text-field v-model="search" label="実験を検索" prepend-inner-icon="mdi-magnify" clearable></v-text-field>
+      </v-col>
+    </v-row>
+
+    <!-- 実験一覧 -->
     <v-row>
-      <v-col cols="12" md="8">
+      <v-col cols="12">
         <v-card>
-          <v-card-title class="text-h6">
-            <v-icon start class="me-2">mdi-calendar-clock</v-icon>
-            直近の実験
-          </v-card-title>
+          <div class="pa-4">
+            <v-row>
+              <v-col v-for="experiment in filteredExperiments" :key="experiment.id" cols="12" sm="6" md="4">
+                <v-card :class="['experiment-card', { 'completed': experiment.status === 'completed' }]"
+                  @click="navigateToExperiment(experiment.id)">
+                  <v-card-item>
+                    <template v-slot:prepend>
+                      <v-icon :color="getStatusColor(experiment.status)" size="large" class="me-2">
+                        mdi-flask
+                      </v-icon>
+                    </template>
+                    <v-card-title>{{ experiment.title }}</v-card-title>
+                    <v-card-subtitle>
+                      予定日: {{ formatDate(experiment.date) }}
+                    </v-card-subtitle>
+                  </v-card-item>
 
-          <v-card-text>
-            <v-list v-if="upcomingExperiments.length > 0">
-              <v-list-item v-for="experiment in upcomingExperiments" :key="experiment.id" :title="experiment.title"
-                :subtitle="formatDate(experiment.date)">
-                <template v-slot:prepend>
-                  <v-icon :color="getStatusColor(experiment.status)" class="me-2">
-                    mdi-flask
-                  </v-icon>
-                </template>
+                  <v-card-text>
+                    <div class="text-truncate">{{ experiment.description || '説明なし' }}</div>
+                    <v-chip class="mt-2" :color="getStatusColor(experiment.status)" size="small" label>
+                      {{ getStatusText(experiment.status) }}
+                    </v-chip>
+                  </v-card-text>
 
-                <template v-slot:append>
-                  <v-btn variant="text" color="primary" :to="`/experiment/${experiment.id}`">
-                    View Details
-                  </v-btn>
-                </template>
-              </v-list-item>
-            </v-list>
+                  <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn variant="text" color="primary" :to="`/experiment/${experiment.id}`">
+                      詳細を見る
+                      <v-icon end>mdi-arrow-right</v-icon>
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-col>
+            </v-row>
 
-            <v-alert v-else type="info" variant="tonal" class="mt-4">
-              次の実験は登録されていません．登録してみましょう！
+            <!-- データがない場合 -->
+            <v-alert v-if="filteredExperiments.length === 0" type="info" variant="tonal" class="mt-4">
+              実験が見つかりません。新しい実験を登録してみましょう！
             </v-alert>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <!-- 登録・確認など -->
-      <v-col cols="12" md="4">
-        <v-card>
-          <v-card-title class="text-h6">
-            <v-icon start class="me-2">mdi-lightning-bolt</v-icon>
-            こちらから登録(このコメントは変更したい)
-          </v-card-title>
-
-          <v-card-text>
-            <v-btn block color="primary" class="mb-4" prepend-icon="mdi-plus" @click="register">
-              次の実験を登録
-            </v-btn>
-
-            <v-btn block variant="outlined" class="mb-4" prepend-icon="mdi-file-upload" @click="openImportDialog">
-              実験テキストを画像からインポート
-            </v-btn>
-
-            <v-btn block variant="outlined" prepend-icon="mdi-calendar" :to="'/calendar'">
-              カレンダーを見る
-            </v-btn>
-          </v-card-text>
+          </div>
         </v-card>
       </v-col>
     </v-row>
 
-    <!-- New Experiment Dialog -->
-    <v-dialog v-model="newExperimentDialog" max-width="600px">
-      <v-card>
-        <v-card-title class="text-h5">Create New Experiment</v-card-title>
-        <v-card-text>
-          <v-form v-model="valid" @submit.prevent="createExperiment">
-            <v-text-field v-model="newExperiment.title" label="Experiment Title" required
-              :rules="[v => !!v || 'Title is required']"></v-text-field>
-
-            <v-textarea v-model="newExperiment.description" label="Description" rows="3"></v-textarea>
-
-            <v-date-picker v-model="newExperiment.date" class="mt-4"></v-date-picker>
-          </v-form>
-        </v-card-text>
-
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="grey-darken-1" variant="text" @click="newExperimentDialog = false">
-            Cancel
-          </v-btn>
-          <v-btn color="primary" @click="createExperiment" :disabled="!valid">
-            Create
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- Import Dialog -->
-    <v-dialog v-model="importDialog" max-width="600px">
-      <v-card>
-        <v-card-title class="text-h5">Import Experiment Text</v-card-title>
-        <v-card-text>
-          <v-file-input v-model="importFile" accept=".pdf,.jpg,.jpeg,.png" label="Upload experiment text"
-            prepend-icon="mdi-camera" show-size truncate-length="15"></v-file-input>
-
-          <v-alert v-if="processing" color="info" icon="mdi-progress-clock">
-            Processing your document... This may take a moment.
-          </v-alert>
-        </v-card-text>
-
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="grey-darken-1" variant="text" @click="importDialog = false">
-            Cancel
-          </v-btn>
-          <v-btn color="primary" @click="processDocument" :loading="processing" :disabled="!importFile">
-            Process
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <!-- 新規実験登録FABボタン -->
+    <v-btn class="floating-btn" color="primary" icon="mdi-plus" size="x-large"
+      @click="$router.push('/register')"></v-btn>
   </v-container>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
-import { auth, db, storage } from '../firebase/init'
-import { collection, query, where, getDocs, addDoc, Timestamp } from 'firebase/firestore'
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { onAuthStateChanged } from "firebase/auth"
+import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { db, auth } from '../firebase/init'
+import { collection, query, getDocs, where } from 'firebase/firestore'
 
 export default {
-  data() {
-    return {
-      displayName: ""
-    }
-  },
-  created() {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        this.displayName = user.displayName
-      } else {
-        this.displayName = ""
-      }
-    })
-  },
-  setup() {
-    const user = ref(auth.currentUser)
-    // this.displayName = auth.currentUser.email
-    const upcomingExperiments = ref([])
-    const newExperimentDialog = ref(false)
-    const importDialog = ref(false)
-    const importFile = ref(null)
-    const processing = ref(false)
-    const valid = ref(false)
+  name: 'DashboardScreen',
 
-    const newExperiment = ref({
-      title: '',
-      description: '',
-      date: new Date().toISOString().substr(0, 10),
+  setup() {
+    const router = useRouter()
+    const experiments = ref([])
+    const filter = ref('')
+    const sortBy = ref('date')
+    const search = ref('')
+
+    const filterOptions = [
+      { title: 'すべて', value: '' },
+      { title: '予定', value: 'pending' },
+      { title: '進行中', value: 'inProgress' },
+      { title: '完了', value: 'completed' }
+    ]
+
+    const sortOptions = [
+      { title: '日付順', value: 'date' },
+      { title: 'タイトル順', value: 'title' },
+      { title: 'ステータス順', value: 'status' }
+    ]
+
+    // フィルタリングとソートを適用した実験リスト
+    const filteredExperiments = computed(() => {
+      let filtered = [...experiments.value]
+
+      // 検索フィルター
+      if (search.value) {
+        filtered = filtered.filter(exp =>
+          exp.title.toLowerCase().includes(search.value.toLowerCase()) ||
+          exp.description?.toLowerCase().includes(search.value.toLowerCase())
+        )
+      }
+
+      // ステータスフィルター
+      if (filter.value) {
+        filtered = filtered.filter(exp => exp.status === filter.value)
+      }
+
+      // ソート
+      filtered.sort((a, b) => {
+        switch (sortBy.value) {
+          case 'date':
+            return new Date(a.date) - new Date(b.date)
+          case 'title':
+            return a.title.localeCompare(b.title)
+          case 'status':
+            return a.status.localeCompare(b.status)
+          default:
+            return 0
+        }
+      })
+
+      return filtered
     })
+
+    const fetchExperiments = async () => {
+
+      try {
+        const q = query(
+          collection(db, 'experiments'),
+          where('userId', '==', auth.currentUser?.displayName || '')
+        )
+        const querySnapshot = await getDocs(q)
+        querySnapshot.forEach((doc) => {
+          // doc.data() is never undefined for query doc snapshots
+          console.log(doc.id, " => ", doc.data());
+        });
+        experiments.value = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          //   date: doc.data().date.toDate()
+        }))
+      } catch (error) {
+        console.error('Error fetching experiments:', error)
+      }
+    }
 
     const formatDate = (date) => {
       return new Date(date).toLocaleDateString('ja-JP', {
         year: 'numeric',
         month: 'long',
-        day: 'numeric',
+        day: 'numeric'
       })
     }
 
@@ -174,125 +177,64 @@ export default {
       const colors = {
         pending: 'grey',
         inProgress: 'blue',
-        completed: 'green',
+        completed: 'green'
       }
       return colors[status] || 'grey'
     }
 
-    const fetchUpcomingExperiments = async () => {
-      if (!user.value) return;
-
-      // 今日の日付の開始時刻（00:00:00）を取得
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      const q = query(
-        collection(db, 'experiments'),
-        where('userId', '==', user.value.uid),
-        where('date', '>=', Timestamp.fromDate(today)),
-        // オプション: 日付順にソート
-        // orderBy('date', 'asc')
-      );
-
-      try {
-        const querySnapshot = await getDocs(q);
-        upcomingExperiments.value = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          // Timestamp を Date に変換
-          date: doc.data().date.toDate()
-        }));
-      } catch (error) {
-        console.error('Error fetching experiments:', error);
-        upcomingExperiments.value = [];
+    const getStatusText = (status) => {
+      const texts = {
+        pending: '予定',
+        inProgress: '進行中',
+        completed: '完了'
       }
-    };
-    const createExperiment = async () => {
-      if (!valid.value) return
-
-      try {
-        await addDoc(collection(db, 'experiments'), { // firestore → db に変更
-          userId: user.value.uid,
-          title: newExperiment.value.title,
-          description: newExperiment.value.description,
-          date: Timestamp.fromDate(new Date(newExperiment.value.date)),
-          status: 'pending',
-          createdAt: Timestamp.now(),
-        })
-
-        newExperimentDialog.value = false
-        newExperiment.value = {
-          title: '',
-          description: '',
-          date: new Date().toISOString().substr(0, 10),
-        }
-
-        await fetchUpcomingExperiments()
-      } catch (error) {
-        console.error('Error creating experiment:', error)
-      }
-    }
-    const processDocument = async () => {
-      if (!importFile.value) return
-
-      processing.value = true
-      try {
-        const file = importFile.value
-        const fileRef = storageRef(storage, `experiments/${user.value.uid}/${Date.now()}_${file.name}`)
-
-        // ファイルをアップロード
-        await uploadBytes(fileRef, file)
-        const url = await getDownloadURL(fileRef)
-        console.log(url)
-
-        // TODO: OCRとGemini APIの処理を追加
-        // 1. Cloud Vision APIでOCR
-        // 2. 抽出したテキストをGemini APIで解析
-        // 3. 実験手順をフローチャートやチェックリストに変換
-
-        importDialog.value = false
-        // 処理結果を使って新しい実験を作成
-      } catch (error) {
-        console.error('Error processing document:', error)
-        // TODO: エラー処理の追加
-      } finally {
-        processing.value = false
-      }
+      return texts[status] || '不明'
     }
 
-    const openNewExperimentDialog = () => {
-      newExperimentDialog.value = true
-    }
-
-    const openImportDialog = () => {
-      importDialog.value = true
+    const navigateToExperiment = (experimentId) => {
+      router.push(`/experiment/${experimentId}`)
     }
 
     onMounted(() => {
-      fetchUpcomingExperiments()
+      fetchExperiments()
     })
 
     return {
-      user,
-      upcomingExperiments,
-      newExperimentDialog,
-      importDialog,
-      importFile,
-      processing,
-      valid,
-      newExperiment,
+      experiments,
+      filter,
+      filterOptions,
+      sortBy,
+      sortOptions,
+      search,
+      filteredExperiments,
       formatDate,
       getStatusColor,
-      createExperiment,
-      processDocument,
-      openNewExperimentDialog,
-      openImportDialog,
-    }
-  },
-  methods: {
-    register() {
-      this.$router.push('/register')
+      getStatusText,
+      navigateToExperiment
     }
   }
 }
 </script>
+
+<style scoped>
+.experiment-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.experiment-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.experiment-card.completed {
+  opacity: 0.8;
+}
+
+.floating-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 100;
+}
+</style>
