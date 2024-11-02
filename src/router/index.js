@@ -3,6 +3,7 @@ import StartScreen from '@/views/StartScreen.vue'
 import LoginScreen from '@/views/LoginScreen'
 import SignupScreen from '@/views/SignupScreen'
 import DashboardScreen from '@/views/DashboardScreen'
+import RegisterScreen from '@/views/RegisterScreen'
 
 const routes = [
 	{
@@ -20,12 +21,18 @@ const routes = [
 		name: 'Signup',
 		component: SignupScreen
 	},
-		{
-			path: '/dashboard',
-			name: 'Dashboard',
-			component: DashboardScreen
-		}
-	// 他のルートをここに追加していきます
+	{
+		path: '/dashboard',
+		name: 'Dashboard',
+		component: DashboardScreen
+	},
+	{
+		path: '/register',
+		name: 'Register',
+		component: RegisterScreen
+	}
+	// 他のルートをここに追加していく
+	// ページ作るときはここに書いて!!!
 ]
 
 const router = createRouter({
