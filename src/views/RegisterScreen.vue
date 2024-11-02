@@ -198,11 +198,10 @@ export default {
       }
     }
 
-    const handleSaved = (docId) => {
+    const handleSaved = () => {
       // 保存完了後の処理
       showEditor.value = false
       generatedData.value = null
-      console.log(docId)
       // 必要に応じて他のリセット処理を追加
     }
 

@@ -87,7 +87,8 @@
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn color="error" @click="closeDialog">キャンセル</v-btn>
-        <v-btn color="primary" @click="saveExperiment">保存</v-btn>
+        <v-btn v-if="!localData.id" color="primary" @click="saveExperiment">保存</v-btn>
+        <v-btn v-else-if="localData.id" color="primary" @click="saveEditedData">更新</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -95,7 +96,7 @@
 
 <script>
 import { ref, watch } from 'vue'
-import { getFirestore, collection, addDoc } from 'firebase/firestore'
+import { doc, updateDoc, getFirestore, collection, addDoc } from 'firebase/firestore'
 
 export default {
   name: 'ExperimentEditor',
@@ -160,6 +161,26 @@ export default {
       }
     }
 
+    const saveEditedData = async () => {
+      try {
+        const db = getFirestore()
+        const experimentRef = doc(db, 'experiments', localData.value.id)
+        await updateDoc(experimentRef, {
+          title: localData.value.title,
+          objective: localData.value.objective,
+          date: localData.value.date,
+          steps: localData.value.steps,
+          precautions: localData.value.precautions,
+          equipmentPhotos: localData.value.equipmentPhotos,
+        })
+        emit('saved', experimentRef.id)
+        closeDialog()
+
+      } catch (error) {
+        console.error('進捗保存エラー:', error)
+      }
+    }
+
     return {
       localData,
       newMaterial,
@@ -167,7 +188,8 @@ export default {
       closeDialog,
       addMaterial,
       addPrecaution,
-      saveExperiment
+      saveExperiment,
+      saveEditedData
     }
   }
 }

@@ -44,8 +44,16 @@
       </v-card-text>
     </v-card>
 
+
+    <!-- 編集ボタン -->
+    <v-btn class="floating-btn" color="primary" icon="mdi-pencil" size="x-large" @click="showEditor = !showEditor">
+    </v-btn>
+
     <!-- 実験ステップ -->
     <v-expansion-panels class="scrollable">
+
+      <ExperimentEditor v-model="showEditor" :experiment-data="experiment" @saved="loadExperiment" />
+
       <v-expansion-panel v-for="step in experiment.steps" :key="step.stepId">
         <v-expansion-panel-header>
           <div class="d-flex align-center">
@@ -148,12 +156,15 @@
 </template>
 
 <script>
+import ExperimentEditor from './ExperimentEditor.vue'
 import { db } from '../firebase/init'
 import { doc, updateDoc, getDoc } from 'firebase/firestore'
 
 export default {
   name: 'ExperimentViewer',
-
+  components: {
+    ExperimentEditor
+  },
   data() {
     return {
       experiment: {
@@ -167,7 +178,8 @@ export default {
       },
       progressPercentage: 0,
       showPhotoDialog: false,
-      selectedPhoto: null
+      selectedPhoto: null,
+      showEditor: false
     }
   },
 
@@ -240,5 +252,17 @@ export default {
 
 .scrollable {
   z-index: 0;
+}
+
+.floating-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 100;
+  transition: transform 0.3s ease;
+}
+
+.floating-btn:hover {
+  transform: scale(1.05);
 }
 </style>
