@@ -2,12 +2,12 @@
   <div class="max-w-4xl mx-auto p-6">
     <!-- ヘッダー情報 -->
     <v-card class="mb-6">
-      <v-card-title class="text-h5">
+      <v-card-title class="text-h5 overflow-auto">
         {{ experiment.title }}
         <div class="text-subtitle-2">実施予定日: {{ experiment.date }}</div>
       </v-card-title>
       <v-card-text>
-        <div class="mb-4">
+        <div class="mb-4 overflow-auto">
           <h3 class="font-weight-bold mb-2">実験の目的:</h3>
           <p>{{ experiment.objective }}</p>
         </div>
@@ -37,7 +37,7 @@
               <v-icon color="warning">mdi-alert-circle-outline</v-icon>
             </v-list-item-icon>
             <v-list-item-content>
-              <v-list-item-title>{{ precaution }}</v-list-item-title>
+              <v-list-item-title class="overflow-auto">{{ precaution }}</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list>
@@ -98,7 +98,8 @@
                       <v-checkbox v-model="subStep.checked" @change="updateProgress"></v-checkbox>
                     </v-list-item-icon>
                     <v-list-item-content>
-                      <v-list-item-title>{{ subStep.stepId }}: {{ subStep.description }}</v-list-item-title>
+                      <v-list-item-title class="overflow-auto">{{ subStep.stepId }}: {{ subStep.description
+                        }}</v-list-item-title>
                       <v-list-item-subtitle v-if="subStep.notes" class="mt-1">
                         Note: {{ subStep.notes }}
                       </v-list-item-subtitle>
