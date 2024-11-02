@@ -21,6 +21,9 @@
               <v-file-input v-model="files" label="写真・PDFをアップロード" accept="image/*,.pdf"
                 @update:model-value="handleFileUpload" multiple show-size :loading="ocrProcessing"
                 :disabled="ocrProcessing" hint="画像ファイルをアップロードしてください" persistent-hint></v-file-input>
+
+              <ExperimentEditor v-if="showEditor" :experiment-data="generatedData" @saved="handleSaved" />
+
               <!-- OCR進行状況 -->
               <v-progress-linear v-if="ocrProcessing" indeterminate color="primary" class="mb-4"></v-progress-linear>
 
@@ -41,43 +44,54 @@
               </v-expansion-panels>
 
               <!-- Gemini リクエストエリア -->
-              <v-expansion-panels v-if="valid">
-                <v-btn color="primary" @click="processWithGemini()">
+              <v-row class="mt-4">
+                <v-btn :disabled="!valid" color="primary" @click="processWithGemini()">
                   AIでまとめる
                 </v-btn>
-              </v-expansion-panels>
-
-              <!-- 実施予定日設定 -->
-              <v-row class="mt-4">
-                <v-col cols="12" sm="6">
-                  <v-date-picker v-model="experimentData.scheduledDate" label="実施予定日"></v-date-picker>
-                </v-col>
-                <v-col cols="12" sm="6">
-                  <v-checkbox v-model="experimentData.notificationEnabled" label="事前通知を受け取る"></v-checkbox>
-                </v-col>
               </v-row>
 
-              <v-btn color="primary" :disabled="!valid || ocrProcessing" @click="submitData" :loading="loading"
-                class="mt-4">
-                登録する
-              </v-btn>
+              <ExperimentEditor v-model="showEditor" :experiment-data="generatedData" @saved="handleSaved" />
+
             </v-form>
           </v-card-text>
         </v-card>
       </v-col>
     </v-row>
   </v-container>
+
 </template>
 
 <script>
+import ExperimentEditor from './ExperimentEditor.vue'
 import { ref, reactive } from 'vue'
 import { getFirestore, collection, addDoc } from 'firebase/firestore'
 import { createWorker } from 'tesseract.js'
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+import { onAuthStateChanged } from "firebase/auth"
+import { auth } from '../firebase/init'
 
 export default {
   name: 'RegisterScreen',
+  components: {
+    ExperimentEditor
+  },
+  data() {
+    return {
+      displayName: ""
+    }
+  },
+  created() {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        this.displayName = user.displayName
+      } else {
+        this.displayName = ""
+      }
+    })
+
+  },
   setup() {
+    const showEditor = ref(false)
     const valid = ref(false)
     const loading = ref(false)
     const files = ref([])
@@ -92,6 +106,9 @@ export default {
       notificationEnabled: false
     })
 
+    const toggleEditor = () => {
+      showEditor.value = !showEditor.value;  // `this`は不要
+    };
     const generatedData = ref(null)
 
     // OCR処理
@@ -145,8 +162,6 @@ export default {
       }
     }
 
-
-
     // OCR結果を実験手順に追加
     const appendToProcedure = (index) => {
       if (!ocrResults.value[index] || !ocrResults.value[index].text) return
@@ -154,6 +169,7 @@ export default {
       experimentData.procedure = experimentData.procedure
         ? `${experimentData.procedure}\n\n${ocrResults.value[index].text}`
         : ocrResults.value[index].text
+      ocrResults.value = ""
     }
 
     // データを保存
@@ -182,6 +198,14 @@ export default {
       }
     }
 
+    const handleSaved = (docId) => {
+      // 保存完了後の処理
+      showEditor.value = false
+      generatedData.value = null
+      console.log(docId)
+      // 必要に応じて他のリセット処理を追加
+    }
+
     return {
       valid,
       loading,
@@ -192,24 +216,106 @@ export default {
       generatedData,
       handleFileUpload,
       appendToProcedure,
-      submitData
+      submitData,
+      showEditor,
+      handleSaved,
+      toggleEditor
     }
   },
   methods: {
     // Gemini APIで処理
     async processWithGemini() {
       const combinedText = this.experimentData
-
+      console.log(combinedText)
       if (!combinedText) {
         console.log('No text to process')
         return
       }
+
       // Gemini APIにリクエストを送信
       const genAI = new GoogleGenerativeAI(process.env.VUE_APP_GEMINI_API_KEY)
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       console.log(model)
+      const experimentId = 12345
+      const prompt = `
+      outpu JSON only(without writing \`\`\`json)
+    実験をしています．つぎのデータ簡単にまとめ，それを基に，以下のJSON Schemaのような形式でまとめて出力してください.文章に余計な空白は含めないでください.JSONは{からはじめて\`などは含まないでください.データは画像認識で文字起こしされたものであり，変な場合があるので，補正ができるならば考慮.
+
+    ${combinedText.purpose},${combinedText.procedure},${combinedText.precautions}
+    {
+      "experimentId": "${experimentId}",
+      "userId": "${this.displayName}",
+      "title": "",
+      "objective": "",
+        "date": "${this.experimentData.scheduledDate}",
+      "steps": [
+        {
+          "stepId": "1",
+          "description": "",
+          "materials": ["", "", ""],
+          "checked": false,
+          "notes": "",
+          "subSteps": [
+            {
+              "stepId": "1.1",
+              "description": "",
+              "checked": false,
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "stepId": "2",
+          "description": "",
+          "materials": [""],
+          "checked": false,
+          "notes": ""
+        },
+        {
+          "stepId": "3",
+          "description": "",
+          "materials": [""],
+          "checked": false,
+          "notes": ""
+        }
+      ],
+      "precautions": [
+        "",
+        ""
+      ],
+      "equipmentPhotos": [
+        {
+          "name": "",
+          "photoUrl": ""
+        }
+      ]
+    }`
+
+      try {
+        const result = await model.generateContent(prompt)
+        const response = result.response
+        const jsonText = response.text()
+        console.log(jsonText, typeof (jsonText))
+        try {
+          const parsedData = JSON.parse(jsonText)
+          // 生成したデータを保持
+          this.generatedData = parsedData
+          // エディタを表示
+          // this.toggleEditor()
+          this.showEditor = true
+          console.log(this.showEditor)
+
+        } catch (parseError) {
+          console.error('JSON parsing error:', parseError)
+          alert('データの形式が不正です。もう一度お試しください。')
+        }
+      } catch (error) {
+        console.error('API error:', error)
+        alert('データの生成中にエラーが発生しました。')
+      }
     }
-  }
+  },
+
 }
 </script>
 
