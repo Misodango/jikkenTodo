@@ -12,16 +12,17 @@
           <p>{{ experiment.objective }}</p>
         </div>
 
-        <!-- 進捗バー -->
-        <div class="mb-4">
-          <div class="d-flex justify-space-between mb-2">
-            <span class="text-subtitle-2 font-weight-medium">進捗状況</span>
-            <span class="text-subtitle-2 font-weight-medium">{{ progressPercentage }}%</span>
-          </div>
-          <v-progress-linear v-model="progressPercentage" color="primary" height="10"></v-progress-linear>
-        </div>
       </v-card-text>
     </v-card>
+
+    <!-- 進捗バー -->
+    <div class="progress-bar-container">
+      <div class="d-flex justify-space-between mb-2">
+        <span class="text-subtitle-2 font-weight-medium">進捗状況</span>
+        <span class="text-subtitle-2 font-weight-medium">{{ progressPercentage }}%</span>
+      </div>
+      <v-progress-linear v-model="progressPercentage" color="primary" height="10"></v-progress-linear>
+    </div>
 
     <!-- 注意事項 -->
     <v-card class="mb-6 warning-card">
@@ -44,7 +45,7 @@
     </v-card>
 
     <!-- 実験ステップ -->
-    <v-expansion-panels>
+    <v-expansion-panels class="scrollable">
       <v-expansion-panel v-for="step in experiment.steps" :key="step.stepId">
         <v-expansion-panel-header>
           <div class="d-flex align-center">
@@ -162,7 +163,7 @@ export default {
         steps: [],
         precautions: [],
         equipmentPhotos: [],
-        id : ""
+        id: ""
       },
       progressPercentage: 0,
       showPhotoDialog: false,
@@ -178,7 +179,6 @@ export default {
   methods: {
     async loadExperiment() {
       this.experiment.id = this.$route.params.id
-      console.log(this.experiment.id)
       try {
         const experimentRef = doc(db, 'experiments', this.experiment.id)
         const docSnap = await getDoc(experimentRef)
@@ -226,5 +226,19 @@ export default {
 .max-width-100 {
   max-width: 100%;
   height: auto;
+}
+
+.progress-bar-container {
+  position: sticky;
+  top: 0;
+  background-color: #ECEFF1;
+  border-radius: 10px;
+  outline: 16px;
+  padding: 16px;
+  z-index: 1;
+}
+
+.scrollable {
+  z-index: 0;
 }
 </style>
