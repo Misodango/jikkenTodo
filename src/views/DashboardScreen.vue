@@ -43,8 +43,7 @@
                         class="me-2">
                         mdi-check-circle
                       </v-icon>
-                      <v-icon v-else :color="getStatusColor(experiment)" size="large"
-                        class="me-2">
+                      <v-icon v-else :color="getStatusColor(experiment)" size="large" class="me-2">
                         mdi-flask
                       </v-icon>
 
@@ -64,6 +63,10 @@
 
                   <v-card-actions>
                     <v-spacer></v-spacer>
+                    <v-btn variant="text" color="red" @click="deleteExperiment(experiment.id)">
+                      削除
+                      <v-icon end>mdi-delete-circle</v-icon>
+                    </v-btn>
                     <v-btn variant="text" color="primary" :to="`/experiment/${experiment.id}`">
                       詳細を見る
                       <v-icon end>mdi-arrow-right</v-icon>
@@ -83,16 +86,38 @@
     </v-row>
 
     <!-- 新規実験登録FABボタン -->
-    <v-btn class="floating-btn" color="primary" icon="mdi-plus" size="x-large"
+    <v-btn class="floating-btn" color="primary" icon="mdi-pencil" size="x-large"
       @click="$router.push('/register')"></v-btn>
+    <!-- <v-speed-dial bottom right location="left center" transition="fade-transition" class="floating-btn"> <template -->
+    <!--     v-slot:activator="{ props: activatorProps }"> -->
+    <!--     <v-fab v-bind="activatorProps" size="large" icon="mdi-plus"></v-fab> -->
+    <!--   </template> -->
+    <!--   <v-btn fab color="primary"> -->
+    <!--     <v-icon>mdi-pencil-circle</v-icon> -->
+    <!--   </v-btn> -->
+    <!--   <v-btn fab color="red"> -->
+    <!--     <v-icon>mdi-delete-circle</v-icon> -->
+    <!--   </v-btn> -->
+    <!-- </v-speed-dial> -->
   </v-container>
+
+  <!-- <div> -->
+  <!--   <v-speed-dial location="right" transition="scale-transtion"> -->
+  <!--     <template v-slot:activator="{ props }"> -->
+  <!--       <v-btn v-bind="props" color="primary" size="large" icon="mdi-plus" class="fab-button"></v-btn> -->
+  <!--     </template> -->
+  <!---->
+  <!--     <v-btn color="primary" icon="mdi-pencil" size="x-large" class="mb-3" @click="$router.push('/register')"></v-btn> -->
+  <!--     <v-btn color="red" icon="mdi-delete-circle" size="x-large" @click="deleteExperiment"></v-btn> -->
+  <!--   </v-speed-dial> -->
+  <!-- </div> -->
 </template>
 
 <script>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { db, auth } from '../firebase/init'
-import { collection, query, getDocs, where } from 'firebase/firestore'
+import { collection, query, getDocs, where, doc, deleteDoc } from 'firebase/firestore'
 
 export default {
   name: 'DashboardScreen',
@@ -110,6 +135,7 @@ export default {
     const filter = ref('')
     const sortBy = ref('date')
     const search = ref('')
+    const fab = false
 
     const filterOptions = [
       { title: 'すべて', value: '' },
@@ -209,6 +235,15 @@ export default {
       fetchExperiments()
     })
 
+    const deleteExperiment = async (id) => {
+      try {
+        await deleteDoc(doc(db, "experiments", id))
+        router.push('/dashboard')
+      } catch (error) {
+        console.error('削除時のエラー', error)
+      }
+    }
+
     return {
       experiments,
       filter,
@@ -220,7 +255,9 @@ export default {
       formatDate,
       getStatusColor,
       getStatusText,
-      navigateToExperiment
+      navigateToExperiment,
+      fab,
+      deleteExperiment
     }
   }
 }
@@ -246,5 +283,16 @@ export default {
   bottom: 24px;
   right: 24px;
   z-index: 100;
+}
+
+.fab-container {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 100;
+}
+
+.fab-button {
+  overflow: visible;
 }
 </style>
