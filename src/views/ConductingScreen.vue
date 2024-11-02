@@ -153,13 +153,6 @@ import { doc, updateDoc, getDoc } from 'firebase/firestore'
 export default {
   name: 'ExperimentViewer',
 
-  props: {
-    experimentId: {
-      type: String,
-      required: true
-    }
-  },
-
   data() {
     return {
       experiment: {
@@ -168,7 +161,8 @@ export default {
         date: '',
         steps: [],
         precautions: [],
-        equipmentPhotos: []
+        equipmentPhotos: [],
+        id : ""
       },
       progressPercentage: 0,
       showPhotoDialog: false,
@@ -183,8 +177,10 @@ export default {
 
   methods: {
     async loadExperiment() {
+      this.experiment.id = this.$route.params.id
+      console.log(this.experiment.id)
       try {
-        const experimentRef = doc(db, 'experiments', this.experimentId)
+        const experimentRef = doc(db, 'experiments', this.experiment.id)
         const docSnap = await getDoc(experimentRef)
         if (docSnap.exists()) {
           this.experiment = { id: docSnap.id, ...docSnap.data() }
@@ -205,7 +201,7 @@ export default {
 
     async saveProgress() {
       try {
-        const experimentRef = doc(db, 'experiments', this.experimentId)
+        const experimentRef = doc(db, 'experiments', this.experiment.id)
         await updateDoc(experimentRef, {
           steps: this.experiment.steps
         })
