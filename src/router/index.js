@@ -4,6 +4,7 @@ import LoginScreen from '@/views/LoginScreen'
 import SignupScreen from '@/views/SignupScreen'
 import DashboardScreen from '@/views/DashboardScreen'
 import RegisterScreen from '@/views/RegisterScreen'
+import ExperimentViewer from '@/views/ConductingScreen'
 
 const routes = [
 	{
@@ -30,7 +31,14 @@ const routes = [
 		path: '/register',
 		name: 'Register',
 		component: RegisterScreen
+	},
+	{
+		path: '/experiment/:id',
+		name: 'Experiment',
+		component: ExperimentViewer,
+		props: true
 	}
+
 	// 他のルートをここに追加していく
 	// ページ作るときはここに書いて!!!
 ]
