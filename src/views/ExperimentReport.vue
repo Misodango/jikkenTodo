@@ -35,6 +35,8 @@
                       <v-list density="compact">
                         <v-list-item v-for="step in experimentData.steps" :key="step.stepId">
                           <template v-slot:title>
+                            <v-icon v-if="step.checked" color="primary" class="mr-2">mdi-check</v-icon>
+                            <v-icon v-else color="red" class="mr-2">mdi-flask-empty-off-outline</v-icon>
                             Step {{ step.stepId }}
                           </template>
                           <template v-slot:subtitle>
@@ -92,7 +94,7 @@
                   </v-window>
                 </v-form>
                 <!-- Gemini リクエストエリア -->
-                <v-btn :disabled="method" color="primary" @click="showEditor = showEditor">
+                <v-btn :loading="!valid" color="primary" @click="processWithGemini">
                   AIでまとめる
                 </v-btn>
 
@@ -130,6 +132,7 @@ export default {
   },
 
   setup(props) {
+    const valid = ref(true)
     const showEditor = ref(false)
     const route = useRoute()
     const router = useRouter()
@@ -214,9 +217,8 @@ export default {
     }
 
     const processWithGemini = async () => {
-      console.log(props.experimentData)
+      valid.value = false
       const combinedText = props.experimentData
-      console.log(combinedText)
       if (!combinedText) {
         console.log('No text to process')
         return
@@ -225,24 +227,27 @@ export default {
       // Gemini APIにリクエストを送信
       const genAI = new GoogleGenerativeAI(process.env.VUE_APP_GEMINI_API_KEY)
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      console.log(model)
-      const prompt = `
-      outpu JSON only(without writing \`\`\`json)
-    実験をしています．つぎのデータ簡単にまとめ，それを基に，以下のJSON Schemaのような形式でまとめて出力してください.文章に余計な空白は含めないでください.JSONは{からはじめて\`などは含まないでください.データは画像認識で文字起こしされたものであり，変な場合があるので，補正ができるならば考慮.
-    ${props.experimentData}
-    ${report.value}
-    {
-      "title":'' ,
-      "abstract": ,
-      "method": '',
-      "result": '',
-      "discussion": '',
-      "figures": [],
-      "experimentId":,
-      "createdAt": null,
-      "updatedAt": null
-    }`
+      const prompt = `output JSON only (without writing \`\`\`json)
+  実験をしています．次のデータの内容をより分かりやすくまとめてください．それを基に，以下のJSON Schemaのような形式でまとめて出力してください。文章に余計な空白は含めないでください。JSONは { からはじめて \` などは含まないでください。データは画像認識で文字起こしされたものであり，変な場合があるので，補正ができるならば考慮してください。
 
+  実験スキーマ：${combinedText.date}, ${combinedText.objective}, ${combinedText.precautions}, ${combinedText.steps}, ${combinedText.title}
+  ノート: ${report.value.title}, ${report.value.abstract}, ${report.value.method}, ${report.value.result}, ${report.value.discussion}, ${JSON.stringify(report.value.figures)}
+
+  項目が空白の場合は，補完やヒントを書いて出力すること(その場合はヒントであることを明示せよ)。
+  {
+    "title": "${report.value.title || ''}",
+    "abstract": "${report.value.abstract || ''}",
+    "method": "${report.value.method || ''}",
+    "result": "${report.value.result || ''}",
+    "discussion": "${report.value.discussion || ''}",
+    "figures": ${JSON.stringify(report.value.figures) || '[]'},
+    "experimentId": "${report.value.experimentId}",
+    "createdAt": "${report.value.createdAt || null}",
+    "updatedAt": "${report.value.updatedAt || null}"
+  }`
+
+      console.log(prompt)
+      alert()
       try {
         const result = await model.generateContent(prompt)
         const response = result.response
@@ -250,13 +255,8 @@ export default {
         console.log(jsonText, typeof (jsonText))
         try {
           const parsedData = JSON.parse(jsonText)
-          console.log(parsedData)
           // 生成したデータを保持
-          // generatedData = parsedData
-          generatedData = props.experimentData.value
-          // エディタを表示
-          // this.toggleEditor()
-          toggleEditor()
+          report.value = parsedData
         } catch (parseError) {
           console.error('JSON parsing error:', parseError)
           alert('データの形式が不正です。もう一度お試しください。')
@@ -265,6 +265,7 @@ export default {
         console.error('API error:', error)
         alert('データの生成中にエラーが発生しました。')
       }
+      valid.value = true
     }
 
     const handleSaved = () => {
@@ -289,7 +290,8 @@ export default {
       saveReport,
       returnDashboard,
       processWithGemini,
-      handleSaved
+      handleSaved,
+      valid
     }
   }
 }
