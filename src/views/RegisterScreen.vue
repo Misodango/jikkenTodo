@@ -110,7 +110,7 @@ export default {
 
     const toggleEditor = () => {
       showEditor.value = !showEditor.value;  // `this`は不要
-    };
+    }
     const generatedData = ref(null)
 
     // OCR処理
