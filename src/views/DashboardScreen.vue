@@ -88,29 +88,8 @@
     <!-- 新規実験登録FABボタン -->
     <v-btn class="floating-btn" color="primary" icon="mdi-pencil" size="x-large"
       @click="$router.push('/register')"></v-btn>
-    <!-- <v-speed-dial bottom right location="left center" transition="fade-transition" class="floating-btn"> <template -->
-    <!--     v-slot:activator="{ props: activatorProps }"> -->
-    <!--     <v-fab v-bind="activatorProps" size="large" icon="mdi-plus"></v-fab> -->
-    <!--   </template> -->
-    <!--   <v-btn fab color="primary"> -->
-    <!--     <v-icon>mdi-pencil-circle</v-icon> -->
-    <!--   </v-btn> -->
-    <!--   <v-btn fab color="red"> -->
-    <!--     <v-icon>mdi-delete-circle</v-icon> -->
-    <!--   </v-btn> -->
-    <!-- </v-speed-dial> -->
   </v-container>
 
-  <!-- <div> -->
-  <!--   <v-speed-dial location="right" transition="scale-transtion"> -->
-  <!--     <template v-slot:activator="{ props }"> -->
-  <!--       <v-btn v-bind="props" color="primary" size="large" icon="mdi-plus" class="fab-button"></v-btn> -->
-  <!--     </template> -->
-  <!---->
-  <!--     <v-btn color="primary" icon="mdi-pencil" size="x-large" class="mb-3" @click="$router.push('/register')"></v-btn> -->
-  <!--     <v-btn color="red" icon="mdi-delete-circle" size="x-large" @click="deleteExperiment"></v-btn> -->
-  <!--   </v-speed-dial> -->
-  <!-- </div> -->
 </template>
 
 <script>

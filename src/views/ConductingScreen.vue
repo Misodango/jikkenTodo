@@ -268,7 +268,7 @@ export default {
     },
 
     moveReportPage() {
-      this.$router.push('/writeReport')
+      this.$router.push(`/writeReport/${this.experiment.id}`)
     },
 
     async capturePhoto(stepId) {
