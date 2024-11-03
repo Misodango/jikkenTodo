@@ -154,6 +154,45 @@
       </v-card>
     </v-dialog>
   </div>
+
+  <v-card class="action-card pa-4">
+    <v-row justify="center" align="center" class="gap-4">
+      <!-- 実験完了ボタン -->
+      <v-dialog max-width="500">
+        <template v-slot:activator="{ props: activatorProps }">
+          <v-btn v-bind="activatorProps" color="primary" size="large" variant="elevated" class="action-button">
+            <v-icon class="mr-2">mdi-check-circle</v-icon>
+            実験を完了する
+          </v-btn>
+        </template>
+
+        <template v-slot:default="{ isActive }">
+          <v-card title="実験を完了しますか？">
+            <v-card-text>
+              実験を完了してレポートに移動します.<br>
+              100％終わっていなくてもレポートを書くことができます.
+            </v-card-text>
+
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn variant="text" @click="isActive.value = false">
+                閉じる
+              </v-btn>
+              <v-btn color="primary" variant="elevated" @click="moveReportPage">
+                レポートを作成
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </template>
+      </v-dialog>
+
+      <!-- 途中退室ボタン -->
+      <v-btn color="green-lighten-1" variant="tonal" size="large" class="action-button" @click="returnDashboard">
+        <v-icon class="mr-2">mdi-home</v-icon>
+        途中退室
+      </v-btn>
+    </v-row>
+  </v-card>
 </template>
 
 <script>
@@ -180,7 +219,8 @@ export default {
       progressPercentage: 0,
       showPhotoDialog: false,
       selectedPhoto: null,
-      showEditor: false
+      showEditor: false,
+      showModal: false
     }
   },
 
@@ -221,6 +261,14 @@ export default {
       } catch (error) {
         console.error('進捗保存エラー:', error)
       }
+    },
+
+    returnDashboard() {
+      this.$router.push('/dashboard')
+    },
+
+    moveReportPage() {
+      this.$router.push('/writeReport')
     },
 
     async capturePhoto(stepId) {
@@ -265,5 +313,20 @@ export default {
 
 .floating-btn:hover {
   transform: scale(1.05);
+}
+
+.action-card {
+  background: transparent;
+  box-shadow: none;
+}
+
+.action-button {
+  min-width: 200px;
+  height: 48px;
+  font-weight: 500;
+}
+
+.gap-4 {
+  gap: 1rem;
 }
 </style>
