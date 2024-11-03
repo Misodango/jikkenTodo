@@ -69,6 +69,7 @@ import { createWorker } from 'tesseract.js'
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 import { onAuthStateChanged } from "firebase/auth"
 import { auth } from '../firebase/init'
+import { useRouter } from 'vue-router'
 
 export default {
   name: 'RegisterScreen',
@@ -97,6 +98,7 @@ export default {
     const files = ref([])
     const ocrProcessing = ref(false)
     const ocrResults = ref([])
+    const router = useRouter()
 
     const experimentData = reactive({
       purpose: '',
@@ -108,7 +110,7 @@ export default {
 
     const toggleEditor = () => {
       showEditor.value = !showEditor.value;  // `this`は不要
-    };
+    }
     const generatedData = ref(null)
 
     // OCR処理
@@ -198,11 +200,11 @@ export default {
       }
     }
 
-    const handleSaved = (docId) => {
+    const handleSaved = () => {
       // 保存完了後の処理
       showEditor.value = false
       generatedData.value = null
-      console.log(docId)
+      router.push('/dashboard')
       // 必要に応じて他のリセット処理を追加
     }
 

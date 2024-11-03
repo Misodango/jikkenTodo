@@ -33,13 +33,20 @@
           <div class="pa-4">
             <v-row>
               <v-col v-for="experiment in filteredExperiments" :key="experiment.id" cols="12" sm="6" md="4">
-                <v-card :class="['experiment-card', { 'completed': experiment.status === 'completed' }]"
+                <v-card variant="outlined" :color="getStatusColor(experiment)"
+                  :class="['experiment-card', { 'completed': experiment.status === 'completed' }]"
                   @click="navigateToExperiment(experiment.id)">
                   <v-card-item>
                     <template v-slot:prepend>
-                      <v-icon :color="getStatusColor(experiment.status)" size="large" class="me-2">
+                      <!-- 完了したらチェックのアイコンにする -->
+                      <v-icon v-if="updateProgress(experiment) == 100" :color="getStatusColor(experiment)" size="large"
+                        class="me-2">
+                        mdi-check-circle
+                      </v-icon>
+                      <v-icon v-else :color="getStatusColor(experiment)" size="large" class="me-2">
                         mdi-flask
                       </v-icon>
+
                     </template>
                     <v-card-title>{{ experiment.title }}</v-card-title>
                     <v-card-subtitle>
@@ -49,13 +56,17 @@
 
                   <v-card-text>
                     <div class="text-truncate">{{ experiment.description || '説明なし' }}</div>
-                    <v-chip class="mt-2" :color="getStatusColor(experiment.status)" size="small" label>
-                      {{ getStatusText(experiment.status) }}
+                    <v-chip class="mt-2" :color="getStatusColor(experiment)" size="small" label>
+                      進捗：{{ updateProgress(experiment) }}%
                     </v-chip>
                   </v-card-text>
 
                   <v-card-actions>
                     <v-spacer></v-spacer>
+                    <v-btn variant="text" color="red" @click="deleteExperiment(experiment.id)">
+                      削除
+                      <v-icon end>mdi-delete-circle</v-icon>
+                    </v-btn>
                     <v-btn variant="text" color="primary" :to="`/experiment/${experiment.id}`">
                       詳細を見る
                       <v-icon end>mdi-arrow-right</v-icon>
@@ -75,26 +86,35 @@
     </v-row>
 
     <!-- 新規実験登録FABボタン -->
-    <v-btn class="floating-btn" color="primary" icon="mdi-plus" size="x-large"
+    <v-btn class="floating-btn" color="primary" icon="mdi-pencil" size="x-large"
       @click="$router.push('/register')"></v-btn>
   </v-container>
+
 </template>
 
 <script>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { db, auth } from '../firebase/init'
-import { collection, query, getDocs, where } from 'firebase/firestore'
+import { collection, query, getDocs, where, doc, deleteDoc } from 'firebase/firestore'
 
 export default {
   name: 'DashboardScreen',
-
+  methods: {
+    updateProgress(experiment) {
+      const totalSteps = experiment.steps.length
+      const completedSteps = experiment.steps.filter(step => step.checked).length
+      const progressPercentage = Math.round((completedSteps / totalSteps) * 100)
+      return progressPercentage
+    }
+  },
   setup() {
     const router = useRouter()
     const experiments = ref([])
     const filter = ref('')
     const sortBy = ref('date')
     const search = ref('')
+    const fab = false
 
     const filterOptions = [
       { title: 'すべて', value: '' },
@@ -151,10 +171,6 @@ export default {
           where('userId', '==', auth.currentUser?.displayName || '')
         )
         const querySnapshot = await getDocs(q)
-        querySnapshot.forEach((doc) => {
-          // doc.data() is never undefined for query doc snapshots
-          console.log(doc.id, " => ", doc.data());
-        });
         experiments.value = querySnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
@@ -173,13 +189,12 @@ export default {
       })
     }
 
-    const getStatusColor = (status) => {
-      const colors = {
-        pending: 'grey',
-        inProgress: 'blue',
-        completed: 'green'
-      }
-      return colors[status] || 'grey'
+    const getStatusColor = (experiment) => {
+      const totalSteps = experiment.steps.length
+      const completedSteps = experiment.steps.filter(step => step.checked).length
+      const progressPercentage = Math.round((completedSteps / totalSteps) * 100)
+      if (progressPercentage == 0) return 'grey'
+      return progressPercentage == 100 ? 'green' : 'blue'
     }
 
     const getStatusText = (status) => {
@@ -199,6 +214,15 @@ export default {
       fetchExperiments()
     })
 
+    const deleteExperiment = async (id) => {
+      try {
+        await deleteDoc(doc(db, "experiments", id))
+        router.push('/dashboard')
+      } catch (error) {
+        console.error('削除時のエラー', error)
+      }
+    }
+
     return {
       experiments,
       filter,
@@ -210,7 +234,9 @@ export default {
       formatDate,
       getStatusColor,
       getStatusText,
-      navigateToExperiment
+      navigateToExperiment,
+      fab,
+      deleteExperiment
     }
   }
 }
@@ -236,5 +262,16 @@ export default {
   bottom: 24px;
   right: 24px;
   z-index: 100;
+}
+
+.fab-container {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 100;
+}
+
+.fab-button {
+  overflow: visible;
 }
 </style>
