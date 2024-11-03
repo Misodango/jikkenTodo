@@ -58,23 +58,20 @@
 
         <v-expansion-panel-content>
           <!-- 材料リスト -->
-          <v-card flat v-if="step.materials && step.materials.length">
-            <v-card-title class="text-subtitle-1 font-weight-bold">
-              必要な器具・材料:
-            </v-card-title>
-            <v-card-text>
-              <v-list dense>
-                <v-list-item v-for="(material, index) in step.materials" :key="index">
-                  <v-list-item-icon>
-                    <v-icon>mdi-flask</v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-content>
-                    <v-list-item-title>{{ material }}</v-list-item-title>
-                  </v-list-item-content>
-                </v-list-item>
-              </v-list>
-            </v-card-text>
-          </v-card>
+          
+          <v-card-title class="text-subtitle-1 font-weight-bold">
+            必要な器具・材料:
+          </v-card-title>
+          <v-card-text>
+            <v-list style="padding: 0;">
+              <v-list-item v-for="(material, index) in step.materials" :key="index">
+                <v-list-item-content>
+                  <v-list-item-title><v-icon style="font-size : 12px;">mdi-circle</v-icon> {{ material }}</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+          </v-card-text>
+        
 
           <!-- サブステップ -->
           <div v-if="step.subSteps" class="mt-4">
@@ -82,23 +79,35 @@
               <v-card-title class="text-subtitle-1 font-weight-bold">
                 詳細手順:
               </v-card-title>
+             
+              
+
+              
+             
               <v-card-text>
-                <v-list dense>
+                <v-list dense justify="center">
                   <v-list-item v-for="subStep in step.subSteps" :key="subStep.stepId">
-                    <v-list-item-icon>
-                      <v-checkbox v-model="subStep.checked" @change="updateProgress"></v-checkbox>
-                    </v-list-item-icon>
-                    <v-list-item-content>
-                      <v-list-item-title>{{ subStep.stepId }}: {{ subStep.description }}</v-list-item-title>
-                      <v-list-item-subtitle v-if="subStep.notes" class="mt-1">
-                        Note: {{ subStep.notes }}
-                      </v-list-item-subtitle>
-                    </v-list-item-content>
+
+                    <template v-slot:prepend>
+                      <v-checkbox-btn></v-checkbox-btn>
+                      <span>
+                        <v-list-item-content>
+                          <v-list-item-title class="overflow-auto">{{ subStep.stepId }}: {{ subStep.description
+                            }}</v-list-item-title>
+                          <v-list-item-subtitle v-if="subStep.notes" class="mt-1">
+                            Note: {{ subStep.notes }}
+                          </v-list-item-subtitle>
+                        </v-list-item-content>
+                      </span>
+                    </template>
+ 
                   </v-list-item>
                 </v-list>
               </v-card-text>
             </v-card>
           </div>
+
+
 
           <!-- ノート -->
           <v-card flat v-if="step.notes" class="mt-4">
@@ -219,6 +228,11 @@ export default {
 </script>
 
 <style scoped>
+.v-checkbox__label {
+  color: #333; /* 好きな色に変更 */
+  font-weight: bold; /* 太字にする */
+}
+
 .warning-card {
   background-color: #FFF3E0 !important;
 }
