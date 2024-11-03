@@ -99,6 +99,7 @@ export default {
     const ocrProcessing = ref(false)
     const ocrResults = ref([])
     const router = useRouter()
+    const message = ref('')
 
     const experimentData = reactive({
       purpose: '',
@@ -209,6 +210,7 @@ export default {
     }
 
     return {
+      message,
       valid,
       loading,
       files,
@@ -305,15 +307,13 @@ export default {
           // エディタを表示
           // this.toggleEditor()
           this.showEditor = true
-          console.log(this.showEditor)
-
         } catch (parseError) {
           console.error('JSON parsing error:', parseError)
-          alert('データの形式が不正です。もう一度お試しください。')
+          this.message = 'データの形式が不正です。もう一度お試しください。'
         }
       } catch (error) {
         console.error('API error:', error)
-        alert('データの生成中にエラーが発生しました。')
+        this.message = 'データの生成中にエラーが発生しました。'
       }
     }
   },
