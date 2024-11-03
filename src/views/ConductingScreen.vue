@@ -67,7 +67,7 @@
 
         <v-expansion-panel-content>
           <!-- 材料リスト -->
-          
+
           <v-card-title class="text-subtitle-1 font-weight-bold">
             必要な器具・材料:
           </v-card-title>
@@ -75,12 +75,13 @@
             <v-list style="padding: 0;">
               <v-list-item v-for="(material, index) in step.materials" :key="index">
                 <v-list-item-content>
-                  <v-list-item-title><v-icon style="font-size : 12px;">mdi-circle</v-icon> {{ material }}</v-list-item-title>
+                  <v-list-item-title><v-icon style="font-size : 12px;">mdi-circle</v-icon> {{ material
+                    }}</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
             </v-list>
           </v-card-text>
-        
+
 
           <!-- サブステップ -->
           <div v-if="step.subSteps" class="mt-4">
@@ -88,11 +89,11 @@
               <v-card-title class="text-subtitle-1 font-weight-bold">
                 詳細手順:
               </v-card-title>
-             
-              
 
-              
-             
+
+
+
+
               <v-card-text>
                 <v-list dense justify="center">
                   <v-list-item v-for="subStep in step.subSteps" :key="subStep.stepId">
@@ -109,7 +110,7 @@
                         </v-list-item-content>
                       </span>
                     </template>
- 
+
 
                   </v-list-item>
                 </v-list>
@@ -290,8 +291,10 @@ export default {
 
 <style scoped>
 .v-checkbox__label {
-  color: #333; /* 好きな色に変更 */
-  font-weight: bold; /* 太字にする */
+  color: #333;
+  /* 好きな色に変更 */
+  font-weight: bold;
+  /* 太字にする */
 }
 
 .warning-card {
