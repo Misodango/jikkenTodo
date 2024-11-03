@@ -95,7 +95,7 @@ export default {
           ...experimentDoc.data()
         }
       } catch (e) {
-        console.error('実験データの読み込みエラー:', e)
+        // console.error('実験データの読み込みエラー:', e)
         error.value = e.message || '実験データの読み込み中にエラーが発生しました'
 
         // エラーが発生した場合は一覧画面に戻る

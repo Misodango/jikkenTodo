@@ -117,7 +117,7 @@ export default {
     // OCR処理
     const handleFileUpload = async (uploadedFiles) => {
       if (!uploadedFiles || !Array.isArray(uploadedFiles) || uploadedFiles.length === 0) {
-        console.log('No files selected')
+        // console.log('No files selected')
         return
       }
 
@@ -126,7 +126,7 @@ export default {
       )
 
       if (imageFiles.length === 0) {
-        console.log('No valid image files found')
+        // console.log('No valid image files found')
         return
       }
 
@@ -146,7 +146,7 @@ export default {
               filename: file.name
             })
           } catch (error) {
-            console.error(`Error processing file ${file.name}:`, error)
+            // console.error(`Error processing file ${file.name}:`, error)
             ocrResults.value.push({
               text: '',
               error: error.message,
@@ -159,7 +159,7 @@ export default {
 
 
       } catch (error) {
-        console.error('OCR processing failed:', error)
+        // console.error('OCR processing failed:', error)
       } finally {
         ocrProcessing.value = false
       }
@@ -178,7 +178,7 @@ export default {
     // データを保存
     const submitData = async () => {
       if (!experimentData.procedure) {
-        console.log('No procedure data')
+        // console.log('No procedure data')
         return
       }
 
@@ -195,7 +195,7 @@ export default {
         // 成功メッセージを表示
       } catch (error) {
 
-        console.error('Data submission failed:', error)
+        // console.error('Data submission failed:', error)
       } finally {
         loading.value = false
       }
@@ -232,14 +232,14 @@ export default {
       const combinedText = this.experimentData
       console.log(combinedText)
       if (!combinedText) {
-        console.log('No text to process')
+        // console.log('No text to process')
         return
       }
 
       // Gemini APIにリクエストを送信
       const genAI = new GoogleGenerativeAI(process.env.VUE_APP_GEMINI_API_KEY)
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      console.log(model)
+      // console.log(model)
       const experimentId = 12345
       const prompt = `
       outpu JSON only(without writing \`\`\`json)
@@ -299,7 +299,7 @@ export default {
         const result = await model.generateContent(prompt)
         const response = result.response
         const jsonText = response.text()
-        console.log(jsonText, typeof (jsonText))
+        // console.log(jsonText, typeof (jsonText))
         try {
           const parsedData = JSON.parse(jsonText)
           // 生成したデータを保持
@@ -308,11 +308,11 @@ export default {
           // this.toggleEditor()
           this.showEditor = true
         } catch (parseError) {
-          console.error('JSON parsing error:', parseError)
+          // console.error('JSON parsing error:', parseError)
           this.message = 'データの形式が不正です。もう一度お試しください。'
         }
       } catch (error) {
-        console.error('API error:', error)
+        // console.error('API error:', error)
         this.message = 'データの生成中にエラーが発生しました。'
       }
     }

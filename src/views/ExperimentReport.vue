@@ -206,7 +206,7 @@ export default {
         // 保存成功のスナックバーまたはアラートを表示
         alert('レポートを保存しました')
       } catch (error) {
-        console.error('Error saving report:', error)
+        // console.error('Error saving report:', error)
         alert('保存中にエラーが発生しました')
         saving.value = false
       }
@@ -220,7 +220,7 @@ export default {
       valid.value = false
       const combinedText = props.experimentData
       if (!combinedText) {
-        console.log('No text to process')
+        // console.log('No text to process')
         return
       }
 
@@ -246,23 +246,19 @@ export default {
     "updatedAt": "${report.value.updatedAt || null}"
   }`
 
-      console.log(prompt)
       alert()
       try {
         const result = await model.generateContent(prompt)
         const response = result.response
         const jsonText = response.text()
-        console.log(jsonText, typeof (jsonText))
         try {
           const parsedData = JSON.parse(jsonText)
           // 生成したデータを保持
           report.value = parsedData
         } catch (parseError) {
-          console.error('JSON parsing error:', parseError)
           alert('データの形式が不正です。もう一度お試しください。')
         }
       } catch (error) {
-        console.error('API error:', error)
         alert('データの生成中にエラーが発生しました。')
       }
       valid.value = true

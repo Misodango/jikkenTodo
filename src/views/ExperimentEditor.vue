@@ -156,7 +156,7 @@ export default {
         // 成功メッセージを表示
         alert('実験データが保存されました')
       } catch (error) {
-        console.error('Error saving experiment:', error)
+        // console.error('Error saving experiment:', error)
         alert('保存中にエラーが発生しました')
       }
     }
@@ -177,7 +177,7 @@ export default {
         closeDialog()
 
       } catch (error) {
-        console.error('進捗保存エラー:', error)
+        // console.error('進捗保存エラー:', error)
       }
     }
 

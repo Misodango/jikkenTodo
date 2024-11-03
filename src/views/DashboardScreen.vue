@@ -177,7 +177,7 @@ export default {
           //   date: doc.data().date.toDate()
         }))
       } catch (error) {
-        console.error('Error fetching experiments:', error)
+        // console.error('Error fetching experiments:', error)
       }
     }
 
@@ -219,7 +219,7 @@ export default {
         await deleteDoc(doc(db, "experiments", id))
         router.push('/dashboard')
       } catch (error) {
-        console.error('削除時のエラー', error)
+        // console.error('削除時のエラー', error)
       }
     }
 

@@ -249,7 +249,7 @@ export default {
           this.experiment = { id: docSnap.id, ...docSnap.data() }
         }
       } catch (error) {
-        console.error('実験データ読み込みエラー:', error)
+        // console.error('実験データ読み込みエラー:', error)
       }
     },
 
@@ -269,7 +269,7 @@ export default {
           steps: this.experiment.steps
         })
       } catch (error) {
-        console.error('進捗保存エラー:', error)
+        // console.error('進捗保存エラー:', error)
       }
     },
 
@@ -283,7 +283,7 @@ export default {
 
     async capturePhoto(stepId) {
       // ここにカメラ機能の実装を追加
-      console.log(`Step ${stepId}の写真を撮影`)
+      console.log(`Step ${stepId}の写真を撮影(未実装)`)
     }
   }
 }
